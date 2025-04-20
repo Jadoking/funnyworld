@@ -2,7 +2,7 @@ import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { PerspectiveCamera } from '@react-three/drei';
 import { useRef } from 'react';
 import * as THREE from 'three';
-import PlayerCube from './PlayerCube'; // adjust path as needed
+import PlayerCube from './PlayerCube';
 
 function CameraController({ targetRef}: { targetRef: React.RefObject<THREE.Object3D >}) {
   const camera = useThree((state) => state.camera);
