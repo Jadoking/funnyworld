@@ -1,15 +1,21 @@
-import { useRef, useEffect, useState } from 'react';
+import { forwardRef, useRef, useEffect, useState, useImperativeHandle } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
-export function PlayerCube() {
-
+const PlayerCube = forwardRef<THREE.Mesh>((_, ref) => {
+  const localRef = useRef<THREE.Mesh>(null);
   const velocity = useRef(0); // vertical velocity (Y axis)
   const isGrounded = useRef(true);
   const gravity = -0.01;
   const jumpForce = 0.2;
-  const meshRef = useRef<THREE.Mesh>(null);
+
+  useImperativeHandle(ref, () => localRef.current!, []);
+
   const [movement, setMovement] = useState({
+    w: false,
+    a: false,
+    s: false,
+    d: false,
     ArrowUp: false,
     ArrowDown: false,
     ArrowLeft: false,
@@ -47,14 +53,14 @@ export function PlayerCube() {
 
   // Move on every frame
   useFrame(() => {
-    const mesh = meshRef.current;
+    const mesh = localRef.current;
     if (!mesh) return;
 
     const speed = 0.05;
-    if (movement.ArrowUp) mesh.position.z -= speed;
-    if (movement.ArrowDown) mesh.position.z += speed;
-    if (movement.ArrowLeft) mesh.position.x -= speed;
-    if (movement.ArrowRight) mesh.position.x += speed;
+    if (movement.w || movement.ArrowUp) mesh.position.z -= speed;
+    if (movement.s || movement.ArrowDown) mesh.position.z += speed;
+    if (movement.a || movement.ArrowLeft) mesh.position.x -= speed;
+    if (movement.d || movement.ArrowRight) mesh.position.x += speed;
 
     // Apply jump force
     if (movement.space && isGrounded.current) {
@@ -75,9 +81,11 @@ export function PlayerCube() {
   });
 
   return (
-    <mesh ref={meshRef} position={[0, 0.5, 0]}>
+    <mesh ref={localRef} position={[0, 0.5, 0]}>
       <boxGeometry args={[1, 1, 1]} />
       <meshStandardMaterial color="hotpink" />
     </mesh>
   );
-}
+});
+
+export default PlayerCube;
