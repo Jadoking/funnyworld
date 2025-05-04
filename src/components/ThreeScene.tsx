@@ -1,43 +1,47 @@
-import { Canvas, useThree, useFrame } from '@react-three/fiber';
-import { PerspectiveCamera } from '@react-three/drei';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { useRef } from 'react';
 import * as THREE from 'three';
+import CameraController from './CameraController';
 import PlayerCube from './PlayerCube';
+import PositionHUD from './PositionHUD';
+import RandomSpheres from './RandomSpheres';
 
-function CameraController({ targetRef}: { targetRef: React.RefObject<THREE.Object3D >}) {
-  const camera = useThree((state) => state.camera);
-  const cameraRef = useRef<THREE.PerspectiveCamera>(null);
-
-  useFrame(() => {
-    if (!targetRef.current) return;
-
-    const target = targetRef.current.position;
-    
-    camera.position.set(target.x, target.y + 2, target.z + 5);
-    camera.lookAt(target);
-  });
+function OriginManager({ playerRef }: { playerRef: React.RefObject<THREE.Object3D> }) {
   
-  return (
-    <PerspectiveCamera
-      makeDefault
-      ref={cameraRef}
-      fov={50}
-    /> 
-  );
+  useFrame(() => {
+    if (!playerRef.current) return;
+
+    const maxDistance = 50;
+    const playerPos = playerRef.current.position;
+    const distanceFromOrigin = playerPos.length();
+
+    if (distanceFromOrigin > maxDistance) {
+      const shiftVector = playerPos.clone();
+
+      playerRef.current.position.sub(shiftVector);
+
+      console.log(`World shifted by`, shiftVector);
+    }
+  }); 
+
+  return null;
 }
- 
+
 export default function ThreeScene() {
-  const cameraRef = useRef<THREE.PerspectiveCamera>(null);
   const cubeRef = useRef<THREE.Mesh>(null);
 
   return (
-    <Canvas style={{ width: '100vw', height: '100vh', backgroundColor: 'black'}}>
-      <CameraController targetRef={cubeRef} />
-
-      <ambientLight />
-      <pointLight position={[10, 10, 10]} />
-      <gridHelper args={[20, 20]} />
-      <PlayerCube ref={cubeRef} />    
-    </Canvas>
+    <>
+      <PositionHUD playerRef={cubeRef as React.RefObject<THREE.Object3D>} />
+      <Canvas style={{ width: '100vw', height: '100vh', backgroundColor: 'black'}}>
+        <CameraController targetRef={cubeRef as React.RefObject<THREE.Object3D>} />
+        <ambientLight />
+        <pointLight position={[10, 10, 10]} />
+        <gridHelper args={[20, 20]} />
+        <RandomSpheres count={100} />
+        <OriginManager playerRef={cubeRef as React.RefObject<THREE.Object3D>} />
+        <PlayerCube ref={cubeRef} />    
+      </Canvas>
+    </>
   );
 }
